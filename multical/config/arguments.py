@@ -50,11 +50,11 @@ class RuntimeOpts:
 class OptimizerOpts:
   """ Optimizer settings including outlier rejection settings and parameters to fix/adjust """
   
-  iter : int = 3 # Iterations of bundle adjustment/outlier rejection
+  iter : int = 10 # Iterations of bundle adjustment/outlier rejection
   loss : str = choice('linear', 'soft_l1', 'huber', 'arctan', default='linear') # Loss function to use in bundle adjustment
 
   outlier_quantile : float = 0.75 # Quantile for outlier rejection (multiplied by threshold factor)
-  outlier_threshold : float = 5.0 # Threshold for outliers (factor of quartile of reprojection error)
+  outlier_threshold : float = 25.0 # Threshold for outliers (factor of quartile of reprojection error)
   auto_scale : Optional[float] = None # Threshold for auto_scale to reduce outlier influence (factor of upper quartile of reprojection error) - requires non-linear loss
 
   fix_intrinsic: bool = False  # Constant camera intrinsic parameters
