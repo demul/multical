@@ -17,7 +17,7 @@ class Camera:
         self.rig_transformation = rig_transformation
 
 
-class NeubilityCameraCalibrationScriptRunner:
+class CameraCalibrationScriptRunner:
     def __init__(self, calibration_images_dir_path):
         self.calibration_images_dir_path = calibration_images_dir_path
         self.input_camera_dir_path_list = self.get_camera_dir_path_list()
@@ -175,7 +175,7 @@ def get_args():
 
 if __name__ == "__main__":
     args_ = get_args()
-    script_runner = NeubilityCameraCalibrationScriptRunner(args_["input_calibration_dir_path"])
+    script_runner = CameraCalibrationScriptRunner(args_["input_calibration_dir_path"])
     script_runner.shuffle_image_indices(args_["output_calibration_dir_path"])
     script_runner.run_multical(args_["output_calibration_dir_path"])
     script_runner.convert_camera_parameter_format(
