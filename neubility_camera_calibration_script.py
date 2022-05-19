@@ -157,7 +157,7 @@ class CameraCalibrationScriptRunner:
 
 
 def get_args():
-    parser = argparse.ArgumentParser("JSON to YAML script")
+    parser = argparse.ArgumentParser("Multical Camera Calibration")
     parser.add_argument(
         "--input_calibration_dir_path",
         "-i",
