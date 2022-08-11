@@ -62,7 +62,7 @@ class CameraCalibrationScriptRunner:
             camera_name_enum_str += camera_name + " "
         camera_name_enum_str = camera_name_enum_str[:-1]
 
-        os.system("multical calibrate --cameras " + camera_name_enum_str + " --image_path " + input_calibration_images_dir_path + " --board /home/multical/example_boards/aprilgrid_6x6_multiple.yaml --limit_intrinsic 1000 --limit_images 1000 --num_thread 4")
+        os.system("multical calibrate --cameras " + camera_name_enum_str + " --image_path " + input_calibration_images_dir_path + " --board /home/multical/example_boards/aprilgrid_3x3_multiple.yaml --limit_intrinsic 1000 --limit_images 1000 --num_thread 16")
 
 
     def get_camera_list_from_json(self, json_file_path):
