@@ -56,13 +56,13 @@ class CameraCalibrationScriptRunner:
                     continue
                 shutil.copy(from_path, to_path)
 
-    def run_multical(self, input_calibration_images_dir_path):
+    def run_multical(self, input_calibration_images_dir_path, target_board_file_name, count_thread):
         camera_name_enum_str = ""
         for camera_name in self.camera_name_list:
             camera_name_enum_str += camera_name + " "
         camera_name_enum_str = camera_name_enum_str[:-1]
 
-        os.system("multical calibrate --cameras " + camera_name_enum_str + " --image_path " + input_calibration_images_dir_path + " --board /home/multical/example_boards/aprilgrid_3x3_multiple.yaml --limit_intrinsic 1000 --limit_images 1000 --num_thread 16")
+        os.system("multical calibrate --cameras " + camera_name_enum_str + " --image_path " + input_calibration_images_dir_path + " --board /home/multical/example_boards/" + target_board_file_name + " --limit_intrinsic 1000 --limit_images 1000 --num_thread " + count_thread)
 
 
     def get_camera_list_from_json(self, json_file_path):
@@ -168,6 +168,18 @@ def get_args():
         "-o",
         type=str,
     )
+    parser.add_argument(
+        "--target_board_file_name",
+        "-tbp",
+        defulat="aprilgrid_6x6_multiple.yaml",
+        type=str,
+    )
+    parser.add_argument(
+        "--count_thread",
+        "-ct",
+        defulat=16,
+        type=int,
+    )
     args = parser.parse_args()
     args = vars(args)
     return args
@@ -177,7 +189,9 @@ if __name__ == "__main__":
     args_ = get_args()
     script_runner = CameraCalibrationScriptRunner(args_["input_calibration_dir_path"])
     script_runner.shuffle_image_indices(args_["output_calibration_dir_path"])
-    script_runner.run_multical(args_["output_calibration_dir_path"])
+    script_runner.run_multical(args_["output_calibration_dir_path"], 
+                               args_["target_board_file_name"], 
+                               args_["count_thread"])
     script_runner.convert_camera_parameter_format(
         os.path.join(args_["output_calibration_dir_path"], 'calibration.json'),
         os.path.join(args_["output_calibration_dir_path"], 'camera_params.yaml')
