@@ -171,14 +171,14 @@ def get_args():
     parser.add_argument(
         "--target_board_file_name",
         "-tbp",
-        defulat="aprilgrid_6x6_multiple.yaml",
+        default="aprilgrid_6x6_multiple.yaml",
         type=str,
     )
     parser.add_argument(
         "--count_thread",
         "-ct",
-        defulat=16,
-        type=int,
+        default="16",
+        type=str,
     )
     args = parser.parse_args()
     args = vars(args)
