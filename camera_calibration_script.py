@@ -10,6 +10,14 @@ import cv2
 import numpy as np
 
 
+BASELINK_ROTATION = np.array([[0.0000000,  -1.0000000,  0.0000000],
+                              [0.0000000,  0.0000000,  -1.0000000],
+                              [1.0000000,  0.0000000,  0.0000000]]
+                              , dtype=np.float64)
+BASELINK_TRANSLATION = np.array([0.0000000, 0.3390000, -0.254000]
+                                , dtype=np.float64)
+
+
 class Camera:
     def __init__(self, intrinsic, distortion, rig_transformation):
         self.intrinsic = intrinsic
@@ -155,6 +163,12 @@ class CameraCalibrationScriptRunner:
         camera_list = self.get_camera_list_from_json(input_json_path)
         self.save_cameras_to_yaml(output_yaml_path, camera_list)
 
+    def save_baselink_extrinsic_to_yaml(self, yaml_file_path):
+        fd = cv2.FileStorage(yaml_file_path, cv2.FILE_STORAGE_APPEND)
+        fd.write("baselinkRotation", BASELINK_ROTATION)
+        fd.write("baselinkTranslation", BASELINK_TRANSLATION)
+        fd.release()
+
 
 def get_args():
     parser = argparse.ArgumentParser("Multical Camera Calibration")
@@ -194,7 +208,8 @@ if __name__ == "__main__":
                                args_["count_thread"])
     script_runner.convert_camera_parameter_format(
         os.path.join(args_["output_calibration_dir_path"], 'calibration.json'),
-        os.path.join(args_["output_calibration_dir_path"], 'camera_params.yaml')
-    )
+        os.path.join(args_["output_calibration_dir_path"], 'camera_params.yaml'))
+    script_runner.save_baselink_extrinsic_to_yaml(os.path.join(args_["output_calibration_dir_path"], 'camera_params.yaml'))
+    
 
     
