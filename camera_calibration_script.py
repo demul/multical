@@ -16,6 +16,7 @@ BASELINK_ROTATION = np.array([[0.0000000,  -1.0000000,  0.0000000],
                               , dtype=np.float64)
 BASELINK_TRANSLATION = np.array([0.0000000, 0.3390000, -0.254000]
                                 , dtype=np.float64)
+DISTORTION_ORDER = ["k1", "k2", "r1", "r2", "k3"]
 
 
 class Camera:
@@ -169,6 +170,11 @@ class CameraCalibrationScriptRunner:
         fd.write("baselinkTranslation", BASELINK_TRANSLATION)
         fd.release()
 
+    def save_distortion_order_to_yaml(self, yaml_file_path):
+        fd = cv2.FileStorage(yaml_file_path, cv2.FILE_STORAGE_APPEND)
+        fd.write("distortion_order", DISTORTION_ORDER)
+        fd.release()
+
 
 def get_args():
     parser = argparse.ArgumentParser("Multical Camera Calibration")
@@ -210,6 +216,5 @@ if __name__ == "__main__":
         os.path.join(args_["output_calibration_dir_path"], 'calibration.json'),
         os.path.join(args_["output_calibration_dir_path"], 'camera_params.yaml'))
     script_runner.save_baselink_extrinsic_to_yaml(os.path.join(args_["output_calibration_dir_path"], 'camera_params.yaml'))
-    
-
+    script_runner.save_distortion_order_to_yaml(os.path.join(args_["output_calibration_dir_path"], 'camera_params.yaml'))
     
