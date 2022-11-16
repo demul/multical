@@ -57,6 +57,9 @@ class CameraCalibrationScriptRunner:
         random.shuffle(to_name_list)
 
         for input_camera_dir_path, output_camera_dir_path in zip(self.input_camera_dir_path_list, output_camera_dir_path_list):
+            if os.path.exists(output_camera_dir_path):
+                print("The path : '%s' which already exist will be overwritten." % output_camera_dir_path)
+                shutil.rmtree(output_camera_dir_path)
             os.makedirs(output_camera_dir_path)
             for image_index in range(self.maximum_image_index):
                 from_path = os.path.join(input_camera_dir_path, from_name_list[image_index])
