@@ -151,11 +151,11 @@ class Workspace:
         tables.table_info(self.point_table.valid, self.names)
 
     def set_calibration(self, cameras):
-      assert set(self.names.camera) == set(cameras.keys()),\
-         f"set_calibration: cameras don't match"\
-         f"{set(self.names.camera)} vs. {set(cameras.keys())}"
-
-      self.cameras = [cameras[k] for k in self.names.camera]
+      self.cameras = list(self.cameras)
+      for camera_index, camera_name in enumerate(self.names.camera):
+        if camera_name in cameras.keys():
+          self.cameras[camera_index] = cameras[camera_name]
+      
       info("Cameras set...")
       for name, camera in zip(self.names.camera, self.cameras):
           info(f"{name} {camera}")
@@ -198,8 +198,17 @@ class Workspace:
         info("Pose counts:")
         tables.table_info(self.pose_table.valid, self.names)
 
+        if camera_poses is not None:
+          camera_poses_npy = np.empty([len(camera_poses.keys()), 4, 4], dtype=next(iter(camera_poses.values())).dtype)
+          for camera_index, camera_name in enumerate(self.names.camera):
+            if camera_name not in camera_poses.keys():
+              continue
+            camera_poses_npy[camera_index] = camera_poses[camera_name]
+        else:
+          camera_poses_npy = None
+
         pose_init = tables.initialise_poses(self.pose_table, 
-          camera_poses=None if camera_poses is None else np.array([camera_poses[k] for k in self.names.camera])
+          camera_poses=camera_poses_npy
         )
 
         calib = Calibration(
@@ -220,7 +229,7 @@ class Workspace:
     def calibrate(self, name="calibration",
         camera_poses=True, motion=True, board_poses=True, 
         cameras=False, boards=False,
-        loss='linear', tolerance=1e-4, num_adjustments=3,
+        loss='linear', tolerance=1e-4, num_adjustments=5,
         quantile=0.75, auto_scale=None, outlier_threshold=5.0)  -> Calibration:
 
         calib : Calibration = self.latest_calibration.enable(

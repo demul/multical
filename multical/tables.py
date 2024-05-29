@@ -196,7 +196,7 @@ def table_info( valid, names):
     info(board_points)
 
 
-def estimate_relative_poses(table, axis=0, hop_penalty=0.9, name=None, names=None):
+def estimate_relative_poses(table, axis=0, hop_penalty=0.9, name=None, names=None, prior_poses=None):
   name = name or dimension_name[axis]
   n = table._shape[axis]
   overlaps = pattern_overlaps(table, axis=axis)
@@ -212,9 +212,20 @@ def estimate_relative_poses(table, axis=0, hop_penalty=0.9, name=None, names=Non
   for parent, child in pairs:
     t = estimate_transform(table, parent, child, axis=axis)
     pose_dict[child] = t @ pose_dict[parent]
+  
+  if prior_poses is not None and n > prior_poses.shape[0]:
+    new_prior_poses = np.empty([n, 4, 4], dtype=prior_poses.dtype)
+    new_prior_poses[:prior_poses.shape[0]] = prior_poses
+    for parent, child in pairs:
+      if child >= prior_poses.shape[0]:
+        new_prior_poses[child] = estimate_transform(table, parent, child, axis=axis) @ new_prior_poses[parent]
 
   rel_poses = fill_poses(pose_dict, n)
-  return multiply(rel_poses, np.linalg.inv(rel_poses.poses[0]))
+  
+  if prior_poses is not None:
+    return multiply(rel_poses, np.linalg.inv(rel_poses.poses[0])), new_prior_poses
+  else:
+    return multiply(rel_poses, np.linalg.inv(rel_poses.poses[0]))
 
 def estimate_relative_poses_inv(table, axis=2, hop_penalty=0.9):
   return inverse(estimate_relative_poses(inverse(table), axis=axis, hop_penalty=hop_penalty))
@@ -345,8 +356,11 @@ def report_poses(k, init, ref):
 
 def initialise_poses(pose_table, camera_poses=None):
     # Find relative transforms between cameras and rig poses
-  camera = estimate_relative_poses(pose_table, axis=0)
-
+  if camera_poses is not None:  
+    camera, camera_poses = estimate_relative_poses(pose_table, axis=0, prior_poses=camera_poses)
+  else:
+    camera = estimate_relative_poses(pose_table, axis=0)
+  
   if camera_poses is not None:
     info("Camera initialisation vs. supplied calibration")
     report_poses("camera", camera_poses, camera.poses)
