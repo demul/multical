@@ -217,6 +217,9 @@ def estimate_relative_poses(table, axis=0, hop_penalty=0.9, name=None, names=Non
     new_prior_poses = np.empty([n, 4, 4], dtype=prior_poses.dtype)
     new_prior_poses[:prior_poses.shape[0]] = prior_poses
     for parent, child in pairs:
+      if parent >= prior_poses.shape[0] and parent > child:
+        parent, child = child, parent
+      
       if child >= prior_poses.shape[0]:
         new_prior_poses[child] = estimate_transform(table, parent, child, axis=axis) @ new_prior_poses[parent]
 

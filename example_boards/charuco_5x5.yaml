@@ -13,10 +13,10 @@ boards:
     aruco_offset: 0
     
   charuco_5x5_1:
-    aruco_offset: 12
+    aruco_offset: 24
 
   charuco_5x5_2:
-    aruco_offset: 24
+    aruco_offset: 49
 
 
 aruco_params:
