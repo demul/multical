@@ -204,7 +204,11 @@ def estimate_relative_poses(table, axis=0, hop_penalty=0.9, name=None, names=Non
   info(f"Overlaps by {name}:")
   info(overlaps)
 
-  master, pairs = graph.select_pairs(overlaps, hop_penalty)
+  master = 0
+  pairs = []
+  for pair_index in range(overlaps.shape[0] - 1):
+    pairs.append((pair_index, pair_index + 1))
+  
   info(f"Selected master {master} and pairs {pairs}")
 
   pose_dict = {master: np.eye(4)}
@@ -217,9 +221,6 @@ def estimate_relative_poses(table, axis=0, hop_penalty=0.9, name=None, names=Non
     new_prior_poses = np.empty([n, 4, 4], dtype=prior_poses.dtype)
     new_prior_poses[:prior_poses.shape[0]] = prior_poses
     for parent, child in pairs:
-      if parent >= prior_poses.shape[0] and parent > child:
-        parent, child = child, parent
-      
       if child >= prior_poses.shape[0]:
         new_prior_poses[child] = estimate_transform(table, parent, child, axis=axis) @ new_prior_poses[parent]
 

@@ -18,15 +18,8 @@ def get_motion_model(motion_model):
 
 def initialise_with_images(
     ws: Workspace,
-    boards,
-    camera_images,
     camera_opts: CameraOpts = CameraOpts(),
-    runtime: RuntimeOpts = RuntimeOpts(),
 ):
-
-    ws.add_camera_images(camera_images, j=runtime.num_threads)
-    ws.detect_boards(boards, load_cache=not runtime.no_cache, j=runtime.num_threads)
-
     calib = map_none(load_calibration, camera_opts.calibration)
 
     ws.calibrate_single(
@@ -46,10 +39,10 @@ def initialise_with_images(
     return ws
 
 
-def optimize(ws: Workspace, opt: OptimizerOpts = OptimizerOpts()):
+def optimize(ws: Workspace, opt: OptimizerOpts = OptimizerOpts(), name="calibration"):
 
     ws.calibrate(
-        "calibration",
+        name=name,
         loss=opt.loss,
         boards=opt.adjust_board,
         cameras=not opt.fix_intrinsic,
