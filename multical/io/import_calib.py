@@ -76,10 +76,8 @@ def import_pose_graph(poses, names):
 
 
 
-def load_json(filename):
-    with open(filename) as json_file:
-        d = json.loads(json_file.read())
-        return to_structs(d)
+def load_json(json_dict):
+  return to_structs(json_dict)
 
 
 def import_cameras(calib_data):
@@ -91,6 +89,6 @@ def import_cameras(calib_data):
     return struct(cameras=cameras, camera_poses=transforms)
 
 
-def load_calibration(filename):
-  calib_data = load_json(filename)
+def load_calibration(json_dict):
+  calib_data = load_json(json_dict)
   return import_cameras(calib_data)
