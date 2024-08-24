@@ -446,7 +446,7 @@ class Workspace:
       
     def save_cameras_as_neubility_yaml(self, json_dict: dict):
         filename = path.join(self.output_path, f"{self.name}.yaml")
-        camera_list = read_camera_from_multical_json_dict(
+        camera_list = read_cameras_from_multical_json(
             json_dict,
             camera_name_list=["cam_f", "cam_fr", "cam_bl", "cam_br", "cam_fl"],
             reference_camera_name="cam_f",
