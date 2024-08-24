@@ -52,7 +52,7 @@ def main(args):
 
 
 def get_args():
-    parser = argparse.ArgumentParser("Camera Calibration for Samsung AEBT")
+    parser = argparse.ArgumentParser("Camera Calibration")
     parser.add_argument("--image_dir_path", "-i", type=str)
     parser.add_argument("--thread_count", "-j", type=str, default=8)
     parser.add_argument(
