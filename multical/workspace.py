@@ -32,149 +32,6 @@ import pickle
 import json
 
 
-class NbCamera:
-    def __init__(
-        self,
-        camera_name,
-        width: int = None,
-        height: int = None,
-        intrinsic: np.ndarray = None,
-        distortion: dict = None,
-        rig_transformation: np.ndarray = None,
-    ):
-        self.camera_name = camera_name
-        self.width = width
-        self.height = height
-        self.intrinsic = intrinsic
-        self.distortion = distortion
-        self.rig_transformation = rig_transformation
-
-
-def read_camera_from_multical_json_dict(
-    json_dict: dict,
-    reference_camera_name: str,
-    target_camera_name: str,
-    distortion_parameter_name_order: list,
-) -> NbCamera:
-    intrinsic_dict = json_dict["cameras"]
-    rig_transformation_dict = json_dict["camera_poses"]
-
-    if target_camera_name in intrinsic_dict.keys():
-        width = int(intrinsic_dict[target_camera_name]["image_size"][0])
-        height = int(intrinsic_dict[target_camera_name]["image_size"][1])
-        intrinsic = np.array(intrinsic_dict[target_camera_name]["K"], dtype=np.float64)
-        distortion = dict()
-        for distortion_parameter_name, distortion_parameter_value in zip(
-            distortion_parameter_name_order,
-            intrinsic_dict[target_camera_name]["dist"][0],
-        ):
-            distortion[distortion_parameter_name] = distortion_parameter_value
-
-    else:
-        print("[%s] intrinsic and distortion does not exist!" % target_camera_name)
-        width = None
-        height = None
-        intrinsic = None
-        distortion = None
-
-    if target_camera_name == reference_camera_name:
-        key_str = target_camera_name
-    else:
-        key_str = "%s_to_%s" % (target_camera_name, reference_camera_name)
-
-    if key_str in rig_transformation_dict.keys():
-        extrinsic = np.empty((4, 4), dtype=np.float64)
-        rotation = np.array(rig_transformation_dict[key_str]["R"], dtype=np.float64)
-        translation = np.array(rig_transformation_dict[key_str]["T"], dtype=np.float64)
-        extrinsic[:3, :3] = rotation
-        extrinsic[:3, 3] = translation
-        extrinsic[3, :] = [0, 0, 0, 1]
-        rig_transformation = np.linalg.inv(extrinsic)
-    else:
-        print("[%s] rig transformation does not exist!" % target_camera_name)
-        rig_transformation = None
-
-    return NbCamera(
-        camera_name=target_camera_name,
-        width=width,
-        height=height,
-        intrinsic=intrinsic,
-        distortion=distortion,
-        rig_transformation=rig_transformation,
-    )
-
-
-def read_cameras_from_multical_json(
-    json_dict: dict,
-    camera_name_list: list,
-    reference_camera_name: str,
-    distortion_parameter_name_order: list,
-) -> list:
-    camera_list = [
-        read_camera_from_multical_json_dict(
-            json_dict,
-            reference_camera_name,
-            target_camera_name,
-            distortion_parameter_name_order,
-        )
-        for target_camera_name in camera_name_list
-    ]
-    return camera_list
-
-
-def factorize_intrinsic_matrix(
-    intrinsic_matrix: np.ndarray,
-):
-    return (
-        float(intrinsic_matrix[0, 0]),
-        float(intrinsic_matrix[1, 1]),
-        float(intrinsic_matrix[0, 2]),
-        float(intrinsic_matrix[1, 2]),
-    )
-
-
-def write_camera_as_neubility_yaml_version_2(fd: cv2.FileStorage, camera: NbCamera):
-    fd.startWriteStruct(camera.camera_name, cv2.FileNode_MAP)
-
-    if camera.width is not None:
-        fd.write("width", camera.width)
-
-    if camera.height is not None:
-        fd.write("height", camera.height)
-
-    if camera.intrinsic is not None:
-        fd.startWriteStruct("intrinsic", cv2.FileNode_MAP)
-        fx, fy, cx, cy = factorize_intrinsic_matrix(camera.intrinsic)
-        fd.write("fx", fx)
-        fd.write("fy", fy)
-        fd.write("cx", cx)
-        fd.write("cy", cy)
-        fd.endWriteStruct()
-
-    if camera.distortion is not None:
-        fd.startWriteStruct("distortion", cv2.FileNode_MAP)
-        for (
-            distortion_parameter_name,
-            distortion_parameter_value,
-        ) in camera.distortion.items():
-            fd.write(distortion_parameter_name, distortion_parameter_value)
-        fd.endWriteStruct()
-
-    if camera.rig_transformation is not None:
-        fd.write("rig_transformation", camera.rig_transformation)
-    fd.endWriteStruct()
-
-
-def write_cameras_as_neubility_yaml(
-    yaml_file_path: str, camera_list: list, version: int
-):
-    fd = cv2.FileStorage(yaml_file_path, cv2.FILE_STORAGE_WRITE)
-    fd.write("version", version)
-    for camera in camera_list:
-        write_camera_as_neubility_yaml_version_2(fd, camera)
-    fd.release()
-
-
 def detect_boards_cached(boards, images, detections_file, cache_key, load_cache=True, j=cpu_count()):
   assert isinstance(boards, list)
 
@@ -443,53 +300,18 @@ class Workspace:
     def export(self, filename=None, master=None):
         data = self.export_json(master=master)
         return to_dicts(data)
-      
-    def save_cameras_as_neubility_yaml(self, json_dict: dict):
-        filename = path.join(self.output_path, f"{self.name}.yaml")
-        camera_list = read_cameras_from_multical_json(
-            json_dict,
-            camera_name_list=["cam_f", "cam_fr", "cam_bl", "cam_br", "cam_fl"],
-            reference_camera_name="cam_f",
-            distortion_parameter_name_order=["k1", "k2", "r1", "r2", "k3"],
-        )
-        base_link = NbCamera(
-            camera_name="baselink_projected_ground",
-            rig_transformation=np.array(
-                [
-                    [0.0, -1.0, 0.0, 0.0],
-                    [0.0, 0.0, -1.0, 0.339],
-                    [1.0, 0.0, 0.0, -0.254],
-                    [0.0, 0.0, 0.0, 1.0],
-                ],
-                dtype=np.float64,
-            ),
-        )
-        base_link_projected_ground = NbCamera(
-            camera_name="baselink_projected_ground",
-            rig_transformation=np.array(
-                [
-                    [0.0, -1.0, 0.0, 0.0],
-                    [0.0, 0.0, -1.0, 0.561],
-                    [1.0, 0.0, 0.0, -0.254],
-                    [0.0, 0.0, 0.0, 1.0],
-                ],
-                dtype=np.float64,
-            ),
-        )
-        camera_list.append(base_link)
-        camera_list.append(base_link_projected_ground)
-        write_cameras_as_neubility_yaml(
-            yaml_file_path=filename,
-            camera_list=camera_list,
-            version=2,
-        )
         
-    def dump(self, filename=None):
-        filename = filename or path.join(self.output_path, f"{self.name}.pkl")
-
-        info(f"Dumping state and history to {filename}")
-        with open(filename, "wb") as file:
+    def dump(self, json_dict, filename=None):
+        filename_pkl = filename or path.join(self.output_path, f"{self.name}.pkl")
+        info(f"Dumping state and history to {filename_pkl}")
+        with open(filename_pkl, "wb") as file:
             pickle.dump(self, file)
+        
+        filename_json = filename or path.join(self.output_path, f"{self.name}.json")
+        info(f"Dumping state and history to {filename_json}")
+        with open(filename_json, "w") as file:
+            json.dump(json_dict, file, indent=2)
+        
 
     @staticmethod
     def load(filename):
