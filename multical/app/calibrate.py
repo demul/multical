@@ -38,8 +38,8 @@ def calibrate(args):
     args.paths.camera_pattern, 
     limit=9999999
   )
-  ws.add_camera_images(camera_images, j=args.runtime.num_theads)
-  ws.detect_boards(boards, load_cache=False, j=args.runtime.num_theads)
+  ws.add_camera_images(camera_images, j=args.runtime.num_threads)
+  ws.detect_boards(boards, load_cache=False, j=args.runtime.num_threads)
   full_detected_points = ws.detected_points
 
   calibration_json_dict = None
