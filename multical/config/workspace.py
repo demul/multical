@@ -21,15 +21,27 @@ def initialise_with_images(
     camera_opts: CameraOpts = CameraOpts(),
 ):
     calib = map_none(load_calibration, camera_opts.calibration)
-
-    ws.calibrate_single(
-        camera_opts.distortion_model,
-        fix_aspect=camera_opts.fix_aspect,
-        has_skew=camera_opts.allow_skew,
-        max_images=camera_opts.limit_intrinsic,
-        isFisheye=camera_opts.isFisheye,
-    )
-    if calib is not None:
+    
+    if calib is None:
+        ws.calibrate_single(
+            camera_opts.distortion_model,
+            ws.detected_points,
+            ws.image_size,
+            fix_aspect=camera_opts.fix_aspect,
+            has_skew=camera_opts.allow_skew,
+            max_images=camera_opts.limit_intrinsic,
+            isFisheye=camera_opts.isFisheye,
+        )
+    else:
+        ws.calibrate_single(
+            camera_opts.distortion_model,
+            [ws.detected_points[-1]],
+            [ws.image_size[-1]],
+            fix_aspect=camera_opts.fix_aspect,
+            has_skew=camera_opts.allow_skew,
+            max_images=camera_opts.limit_intrinsic,
+            isFisheye=camera_opts.isFisheye,
+        )
         ws.set_calibration(calib.cameras)
 
     ws.initialise_poses(

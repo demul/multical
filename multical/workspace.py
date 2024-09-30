@@ -88,6 +88,7 @@ class Workspace:
         self.output_path = output_path
 
         self.calibrations = OrderedDict()
+        self.cameras = None
         self.detections = None
         self.boards = None
         self.board_colors = None
@@ -164,35 +165,40 @@ class Workspace:
           info(f"{name} {camera}")
           info("")
 
-    def calibrate_single(self, camera_model, fix_aspect=False, has_skew=False, max_images=None, isFisheye=False):
+    def calibrate_single(self, camera_model, detected_points, image_sizes, fix_aspect=False, has_skew=False, max_images=None, isFisheye=False):
         assert self.detected_points is not None, "calibrate_single: no points found, first use detect_boards to find corner points"
 
         check_detections(self.names.camera, self.boards, self.detected_points)
 
         info("Calibrating single cameras..")
         if not isFisheye:
-            self.cameras, errs = calibrate_cameras(
+            cameras, errs = calibrate_cameras(
                 self.boards,
-                self.detected_points,
-                self.image_size,
+                detected_points,
+                image_sizes,
                 model=camera_model,
                 fix_aspect=fix_aspect,
                 has_skew=has_skew,
                 max_images=max_images)
         else:
-            self.cameras, errs = calibrate_cameras_fisheye(
+            cameras, errs = calibrate_cameras_fisheye(
                 self.boards,
-                self.detected_points,
-                self.image_size,
+                detected_points,
+                image_sizes,
                 model=camera_model,
                 fix_aspect=fix_aspect,
                 has_skew=has_skew,
                 max_images=max_images)
 
-        for name, camera, err in zip(self.names.camera, self.cameras, errs):
-            info(f"Calibrated {name}, with RMS={err:.2f}")
+        if self.cameras is None:
+            self.cameras = list()
+          
+        for camera, err in zip(cameras, errs):
+            camera_name = self.names.camera[len(self.cameras)]
+            info(f"Calibrated {camera_name}, with RMS={err:.2f}")
             info(camera)
             info("")
+            self.cameras.append(camera)
 
     def initialise_poses(self, motion_model=StaticFrames, camera_poses=None, isFisheye=False):
         assert self.cameras is not None, "initialise_poses: no cameras set, first use calibrate_single or set_cameras"

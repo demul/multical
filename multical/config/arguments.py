@@ -35,7 +35,7 @@ class CameraOpts:
   motion_model: str = choice("rolling", "static", default="static")  # Camera motion model to use
   isFisheye: bool = False # Use fisheye camera -> changes distortion models
   
-  calibration: dict = None # Initialise from previous (or single camera) calibration
+  calibration: Optional[dict] = None # Initialise from previous (or single camera) calibration
   limit_intrinsic: Optional[int] = 50   # Limit intrinsic images to enable faster initialisation
 
 @dataclass 
