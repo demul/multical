@@ -200,7 +200,7 @@ class Workspace:
             info("")
             self.cameras.append(camera)
 
-    def initialise_poses(self, motion_model=StaticFrames, camera_poses=None, isFisheye=False):
+    def initialise_poses(self, motion_model=StaticFrames, camera_poses=None, camera_index_pairs=None, isFisheye=False):
         assert self.cameras is not None, "initialise_poses: no cameras set, first use calibrate_single or set_cameras"
         self.pose_table = tables.make_pose_table(self.point_table, self.boards, self.cameras)
 
@@ -216,8 +216,10 @@ class Workspace:
         else:
           camera_poses_npy = None
 
-        pose_init = tables.initialise_poses(self.pose_table, 
-          camera_poses=camera_poses_npy
+        pose_init = tables.initialise_poses(
+          self.pose_table, 
+          camera_poses=camera_poses_npy,
+          camera_index_pairs=camera_index_pairs,
         )
 
         calib = Calibration(

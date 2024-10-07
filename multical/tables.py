@@ -196,7 +196,7 @@ def table_info( valid, names):
     info(board_points)
 
 
-def estimate_relative_poses(table, axis=0, hop_penalty=0.9, name=None, names=None, prior_poses=None):
+def estimate_relative_poses(table, pairs=None, axis=0, hop_penalty=0.9, name=None, names=None, prior_poses=None):
   name = name or dimension_name[axis]
   n = table._shape[axis]
   overlaps = pattern_overlaps(table, axis=axis)
@@ -205,9 +205,10 @@ def estimate_relative_poses(table, axis=0, hop_penalty=0.9, name=None, names=Non
   info(overlaps)
 
   master = 0
-  pairs = []
-  for pair_index in range(overlaps.shape[0] - 1):
-    pairs.append((pair_index, pair_index + 1))
+  if pairs is None:
+    pairs = []
+    for pair_index in range(overlaps.shape[0] - 1):
+      pairs.append((pair_index, pair_index + 1))
   
   info(f"Selected master {master} and pairs {pairs}")
 
@@ -358,12 +359,12 @@ def report_poses(k, init, ref):
     f"rotation (deg): {errs.rotation_deg[i]:.4f}, "
     f"translation: {errs.translation[i]:.4f}") 
 
-def initialise_poses(pose_table, camera_poses=None):
+def initialise_poses(pose_table, camera_poses=None, camera_index_pairs=None):
     # Find relative transforms between cameras and rig poses
   if camera_poses is not None:  
-    camera, camera_poses = estimate_relative_poses(pose_table, axis=0, prior_poses=camera_poses)
+    camera, camera_poses = estimate_relative_poses(pose_table, camera_index_pairs, axis=0, prior_poses=camera_poses)
   else:
-    camera = estimate_relative_poses(pose_table, axis=0)
+    camera = estimate_relative_poses(pose_table, camera_index_pairs, axis=0)
   
   if camera_poses is not None:
     info("Camera initialisation vs. supplied calibration")

@@ -19,6 +19,7 @@ def get_motion_model(motion_model):
 def initialise_with_images(
     ws: Workspace,
     camera_opts: CameraOpts = CameraOpts(),
+    camera_index_pairs: list = None,
 ):
     calib = map_none(load_calibration, camera_opts.calibration)
     
@@ -47,6 +48,7 @@ def initialise_with_images(
     ws.initialise_poses(
         motion_model=get_motion_model(camera_opts.motion_model),
         camera_poses=calib.camera_poses if calib is not None else None,
+        camera_index_pairs=camera_index_pairs[:len(ws.detected_points) -1]
     )
     return ws
 
