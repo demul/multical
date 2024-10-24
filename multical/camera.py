@@ -64,7 +64,7 @@ class Camera(Parameters):
     return Camera.model[model] | cv2.CALIB_FIX_ASPECT_RATIO * fix_aspect
 
   @staticmethod
-  def calibrate(boards, detections, image_size, max_iter=10, eps=1e-3,
+  def calibrate(boards, detections, image_size, max_iter=100, eps=1e-5,
                 model='standard', fix_aspect=False, has_skew=False, flags=0, max_images=None):
 
     points = calibration_points(boards, detections)
