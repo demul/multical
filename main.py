@@ -53,10 +53,12 @@ def main(args):
     ws.add_camera_images(camera_images, j=thread_count)
     ws.detect_boards(boards, load_cache=False, j=thread_count)
     full_detected_points = ws.detected_points
+    full_image_sizes = ws.image_size
     
     calibration_json_dict = None
     for camera_count_to_calibrate in range(2, len(camera_names) + 1):
         ws.detected_points = full_detected_points[:camera_count_to_calibrate]
+        ws.image_size = full_image_sizes[:camera_count_to_calibrate]
         ws.point_table = multical.tables.make_point_table(ws.detected_points, ws.boards)
         initialise_with_images(
             ws,
