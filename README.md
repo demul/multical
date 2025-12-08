@@ -94,7 +94,26 @@ Visualization can be run by :
 
 Multical provides a convenient highlevel interface found in `multical.workspace` which contains most typical useage, from finding images, loading images, initial single camera calibration, board pose extraction, pose initialisation, and finally bundle adjustment optimization and data export.
 
-It is also the best documentation for how to use lower level library features.
+It is also the best documentation for how to use lower-level library features.
+
+
+## Non-overlapping case (cameras don't overlap at all in their view)
+
+Thank you very much to Tasnim Tabassum Nova, who contributed a hand-eye calibration mode (configured with the option `is_non_overlapping`).
+
+She has kindly provided the code and a dataset with 6 cameras that did not have overlapping views. The dataset for this project is available [here](https://zenodo.org/records/13294455)
+ 
+<img src="https://github.com/user-attachments/assets/2b58c4cb-cdc6-49ba-b1d0-63af123a6473" width="300" height="300">
+<img src="https://github.com/user-attachments/assets/9256dff5-e3c8-463b-a43d-588e74d33182" width="300" height="300">
+
+1. A hand-eye calibration method to address the non-overlapping camera scenario.
+2. An iterative approach for calculating intrinsic parameters, which proves more robust for large datasets and reduces the need to select suitable images for intrinsic calibration manually.
+3. Functionality to reject outlier poses from further calculations.
+
+The complete visualization for the initial guess for camera extrinsic calibration and the final estimation is available [here](https://chart-studio.plotly.com/~Tabassum_Nova/7/#/plot)
+![ex_viz1](https://github.com/user-attachments/assets/f9b0bba8-6e36-42f2-be33-d7ca540b2795)
+
+
 
 
 ## FAQ
@@ -139,35 +158,32 @@ Extrinsic-only calibration can then be performed using the known intrinsic param
 
 ### How can I evaluate the accuracy of a calibration?
 
-* Reprojection error - this evaluates how well the models can fit the data. Low reprojection error is a good calibration if sufficient quantity and variation of input images are used. If the inputs are too few, the camera models may not be constrained enough to produce a good calibration.
+* Reprojection error evaluates how well the models can fit the data. A low reprojection error is a good calibration if sufficient quantity and variation of input images are used. If the inputs are too few, the camera models may not be constrained enough to produce a good calibration.
 
-* Compare a calibration against a different image set, captured with the same cameras. Fix camera parameters with `--fix_intrinsic` and `--fix_camera_poses` and calibrate on the alternative image set:
+* Compare a calibration against a different image set captured with the same cameras. Fix camera parameters with `--fix_intrinsic` and `--fix_camera_poses` and calibrate on the alternative image set:
 
 `multical calibrate --input_path alternative_images --calibration calibration.json --fix_intrinsic --fix_camera_poses`
 
-The reprojection error will be high if the camera parameters and poses don't match the alternative image set well.
+If the camera parameters and poses don't match the alternative image set well, the reprojection error will be high.
 
 ## Credits
 
-Multical derives much inspiration from the [CALICO](https://github.com/amy-tabb/calico) application, implementing largely the algorithm as presented in the paper "Calibration of Asynchronous Camera Networks: CALICO.".
+Multical derives much inspiration from the [CALICO](https://github.com/amy-tabb/calico) application, which implements largely the algorithm presented in the paper "Calibration of Asynchronous Camera Networks: CALICO."
 
-A number abstractions and ideas found in [Anipose lib](https://github.com/lambdaloop/aniposelib) have been very useful, and expanded upon. Small snippets of code have been used around initialisation of relative poses which proved more robust in most cases than the least-squares method used in CALICO.
+Tasnim Tabassum Nova, for her contribution to adding the non-overlapping camera case and making robustness improvements.
+
+A number of abstractions and ideas found in [Anipose lib](https://github.com/lambdaloop/aniposelib) have been very useful and expanded upon. Small snippets of code have been used to initialise relative poses, which proved more robust in most cases than the least-squares method used in CALICO.
 
 As with aniposelib, the scipy nonlinear optimizer [scipy.optimize.least_squares](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html) forms the basis for the bundle adjustment algorithm in this work. 
 
-OpenCV provides many useful algorithms used heavily here, for detecting calibration boards, initialization of camera parameters and camera lens distortion models.
-
-### TODO/Incomplete parts
-
-* Make the buttons on the UI operational to be a complete application rather than just a visualzer
-* Extend apriltags2_ethz to pass through tag dictionaries other than the default t36h11
-* Make the error display grid on the right hand tab use the tolerance slider and adapt color depending on metric
-* Continuous time rolling shutter camera model
-* Add ability to calibrate with cameras which have no overlap (using hand-eye AX = ZB initialization method)
+OpenCV provides many useful algorithms, which are used heavily here, for detecting calibration boards, initializing camera parameters, solving hand-eye calibration and modelling camera lens distortion.
 
 
 
-## Author
+## Authors
 
 Oliver Batchelor
 oliver.batchelor@canterbury.ac.nz
+
+Tasnim Tabassum Nova
+@TabassumNova
